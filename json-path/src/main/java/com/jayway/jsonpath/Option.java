@@ -24,7 +24,7 @@ public enum Option {
      *      {
      *         "foo" : "foo1",
      *         "bar" : "bar1"
-     *      }
+     *      },
      *      {
      *         "foo" : "foo2"
      *      }
@@ -83,6 +83,13 @@ public enum Option {
      * If REQUIRE_PROPERTIES option is present PathNotFoundException is thrown.
      * If REQUIRE_PROPERTIES option is not present ["b-val"] is returned.
      */
-    REQUIRE_PROPERTIES
+    REQUIRE_PROPERTIES,
+
+    /**
+     * Configures JsonPath to create non-existing objects and arrays.
+     * Only works for paths defining new Property or Array Path Tokens.
+     *
+     */
+    CREATE_OBJECTS_ON_WRITE
 
 }

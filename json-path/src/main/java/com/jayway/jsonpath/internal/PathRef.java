@@ -1,9 +1,6 @@
 package com.jayway.jsonpath.internal;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.InvalidModificationException;
-import com.jayway.jsonpath.MapFunction;
-import com.jayway.jsonpath.PathNotFoundException;
+import com.jayway.jsonpath.*;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 
 import java.util.Collection;
@@ -245,7 +242,13 @@ public abstract class PathRef implements Comparable<PathRef>  {
         public void add(Object value, Configuration configuration){
             Object target = configuration.jsonProvider().getMapValue(parent, property);
             if(targetInvalid(target)){
-                return;
+                if (configuration.containsOption(Option.CREATE_OBJECTS_ON_WRITE)) {
+                    PathRef.create(parent, property).set(
+                            configuration.jsonProvider().createArray(), configuration);
+                    target = configuration.jsonProvider().getMapValue(parent, property);
+                } else {
+                    return;
+                }
             }
             if(configuration.jsonProvider().isArray(target)){
                 configuration.jsonProvider().setArrayIndex(target, configuration.jsonProvider().length(target), value);

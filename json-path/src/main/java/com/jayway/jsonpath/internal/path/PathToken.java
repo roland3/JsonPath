@@ -14,6 +14,7 @@
  */
 package com.jayway.jsonpath.internal.path;
 
+import com.jayway.jsonpath.InvalidPathException;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.internal.PathRef;
@@ -50,7 +51,8 @@ public abstract class PathToken {
                 assert this instanceof PropertyPathToken : "only PropertyPathToken is supported";
 
                 if(isLeaf()) {
-                    if(ctx.options().contains(Option.DEFAULT_PATH_LEAF_TO_NULL)){
+                    if(ctx.options().contains(Option.DEFAULT_PATH_LEAF_TO_NULL) ||
+                            (ctx.forUpdate() && ctx.options().contains(Option.CREATE_OBJECTS_ON_WRITE))){
                         propertyVal =  null;
                     } else {
                         if(ctx.options().contains(Option.SUPPRESS_EXCEPTIONS) ||
@@ -61,7 +63,22 @@ public abstract class PathToken {
                         }
                     }
                 } else {
-                    if (! (isUpstreamDefinite() && isTokenDefinite()) &&
+                    if (ctx.forUpdate() && ctx.options().contains(Option.CREATE_OBJECTS_ON_WRITE)) {
+                        if (next() instanceof PropertyPathToken) {
+                            PathRef.create(model, property).set
+                                    (ctx.configuration().jsonProvider().createMap(), ctx.configuration());
+                            propertyVal = readObjectProperty(property, model, ctx);
+                        } else if (next() instanceof ArrayPathToken) {
+                            PathRef.create(model, property).set(
+                                    ctx.configuration().jsonProvider().createArray(), ctx.configuration());
+                            propertyVal = readObjectProperty(property, model, ctx);
+                        } else if (ctx.options().contains(Option.SUPPRESS_EXCEPTIONS)) {
+                            return;
+                        } else {
+                            throw new InvalidPathException("Can't create object corresponding to token " +
+                                    next().getPathFragment() + " following path " + evalPath);
+                        }
+                    } else if (! (isUpstreamDefinite() && isTokenDefinite()) &&
                        !ctx.options().contains(Option.REQUIRE_PROPERTIES) ||
                        ctx.options().contains(Option.SUPPRESS_EXCEPTIONS)){
                         // If there is some indefiniteness in the path and properties are not required - we'll ignore
