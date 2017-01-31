@@ -90,6 +90,6 @@ public enum Option {
      * Only works for paths defining new Property or Array Path Tokens.
      *
      */
-    CREATE_OBJECTS_ON_WRITE
+    CREATE_ON_WRITE
 
 }

@@ -1,6 +1,5 @@
 package com.jayway.jsonpath;
 
-import org.assertj.core.api.Condition;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -313,7 +312,7 @@ public class WriteTest extends BaseTest {
     @Test
     public void non_existing_object_is_created() {
 
-        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_OBJECTS_ON_WRITE);
+        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_ON_WRITE);
 
         Object o = parse(JSON_DOCUMENT, config).set(
                 "$.store.book[*].new_inner_object.new_inner_field", 1).json();
@@ -326,7 +325,7 @@ public class WriteTest extends BaseTest {
     @Test
     public void non_existing_objects_are_created() {
 
-        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_OBJECTS_ON_WRITE);
+        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_ON_WRITE);
 
         Object o = parse(JSON_DOCUMENT, config).set(
                 "$.store.book[*]['new_inner_object_1', 'new_inner_object_2'].new_inner_field", 1).json();
@@ -338,27 +337,9 @@ public class WriteTest extends BaseTest {
     }
 
     @Test
-    public void non_existing_array_is_created_on_set() {
-
-        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_OBJECTS_ON_WRITE);
-
-        Object o = parse(JSON_DOCUMENT, config).set(
-                "$.store.book[*].new_inner_array[0].new_inner_field", 1).json();
-
-        List<List<Object>> result = parse(o).read("$.store.book[*].new_inner_array");
-
-        assertThat(result).hasSize(4).are(new Condition<List<Object>>() {
-            @Override
-            public boolean matches(List<Object> value) {
-                return value.size() == 0;
-            }
-        });
-    }
-
-    @Test
     public void non_existing_array_is_created_on_add() {
 
-        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_OBJECTS_ON_WRITE);
+        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_ON_WRITE);
 
         Object o = parse(JSON_DOCUMENT, config)
                 .add("$.store.book[*].new_inner_array", 1)
@@ -373,7 +354,7 @@ public class WriteTest extends BaseTest {
     @Test(expected = InvalidPathException.class)
     public void non_existing_objects_creation_throws_for_wildcard() {
 
-        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_OBJECTS_ON_WRITE);
+        Configuration config = Configuration.defaultConfiguration().addOptions(Option.CREATE_ON_WRITE);
 
         parse(JSON_DOCUMENT, config).set("$.store.book[*].new_inner_object[*].new_inner_field", 1).json();
     }

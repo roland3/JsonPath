@@ -29,6 +29,7 @@ public abstract class PathToken {
     private PathToken prev;
     private PathToken next;
     private Boolean definite = null;
+    private Boolean propertyOnly = null;
     private Boolean upstreamDefinite = null;
 
     PathToken appendTailToken(PathToken next) {
@@ -52,7 +53,7 @@ public abstract class PathToken {
 
                 if(isLeaf()) {
                     if(ctx.options().contains(Option.DEFAULT_PATH_LEAF_TO_NULL) ||
-                            (ctx.forUpdate() && ctx.options().contains(Option.CREATE_OBJECTS_ON_WRITE))){
+                            (ctx.forUpdate() && ctx.options().contains(Option.CREATE_ON_WRITE))){
                         propertyVal =  null;
                     } else {
                         if(ctx.options().contains(Option.SUPPRESS_EXCEPTIONS) ||
@@ -63,20 +64,16 @@ public abstract class PathToken {
                         }
                     }
                 } else {
-                    if (ctx.forUpdate() && ctx.options().contains(Option.CREATE_OBJECTS_ON_WRITE)) {
-                        if (next() instanceof PropertyPathToken) {
+                    if (ctx.forUpdate() && ctx.options().contains(Option.CREATE_ON_WRITE)) {
+                        if (next().isDownStreamPropertyOnly()) {
                             PathRef.create(model, property).set
                                     (ctx.configuration().jsonProvider().createMap(), ctx.configuration());
-                            propertyVal = readObjectProperty(property, model, ctx);
-                        } else if (next() instanceof ArrayPathToken) {
-                            PathRef.create(model, property).set(
-                                    ctx.configuration().jsonProvider().createArray(), ctx.configuration());
                             propertyVal = readObjectProperty(property, model, ctx);
                         } else if (ctx.options().contains(Option.SUPPRESS_EXCEPTIONS)) {
                             return;
                         } else {
-                            throw new InvalidPathException("Can't create object corresponding to token " +
-                                    next().getPathFragment() + " following path " + evalPath);
+                            throw new InvalidPathException(
+                                    "Can't create new object(s) corresponding to path " + toString());
                         }
                     } else if (! (isUpstreamDefinite() && isTokenDefinite()) &&
                        !ctx.options().contains(Option.REQUIRE_PROPERTIES) ||
@@ -200,6 +197,18 @@ public abstract class PathToken {
         }
         definite = isDefinite;
         return isDefinite;
+    }
+
+    public boolean isDownStreamPropertyOnly() {
+        if(propertyOnly != null){
+            return propertyOnly.booleanValue();
+        }
+        boolean isPropertyOnly = this instanceof PropertyPathToken;
+        if (isPropertyOnly && !isLeaf()) {
+            isPropertyOnly = next.isDownStreamPropertyOnly();
+        }
+        propertyOnly = isPropertyOnly;
+        return isPropertyOnly;
     }
 
     @Override

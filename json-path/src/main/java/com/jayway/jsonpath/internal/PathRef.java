@@ -242,7 +242,7 @@ public abstract class PathRef implements Comparable<PathRef>  {
         public void add(Object value, Configuration configuration){
             Object target = configuration.jsonProvider().getMapValue(parent, property);
             if(targetInvalid(target)){
-                if (configuration.containsOption(Option.CREATE_OBJECTS_ON_WRITE)) {
+                if (configuration.containsOption(Option.CREATE_ON_WRITE)) {
                     PathRef.create(parent, property).set(
                             configuration.jsonProvider().createArray(), configuration);
                     target = configuration.jsonProvider().getMapValue(parent, property);
