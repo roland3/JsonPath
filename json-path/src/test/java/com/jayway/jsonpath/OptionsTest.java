@@ -161,4 +161,44 @@ public class OptionsTest extends BaseTest {
 
         assertThat(result2).containsExactly(null, null, "0-553-21311-3", "0-395-19395-8");
     }
+
+    @Test
+    public void when_created_on_write_objects_are_created() {
+
+        Configuration conf = Configuration.defaultConfiguration();
+
+        try{
+            using(conf).parse("{\"foo\" : \"bar\"}")
+                    .set("$.foo2.bar2", "bar_2_value");
+            fail("Should throw PathNotFoundException");
+        } catch (PathNotFoundException pnf){}
+
+        conf = Configuration.defaultConfiguration().addOptions(CREATE_ON_WRITE);
+
+        String dc = using(conf).parse("{\"foo\" : \"bar\"}")
+                .set("$.foo2.bar2", "bar_2_value").read("$.foo2.bar2");
+        assertThat(dc).isEqualTo("bar_2_value");
+
+    }
+
+    @Test
+    public void when_created_on_write_array_is_created() {
+
+        Configuration conf = Configuration.defaultConfiguration();
+
+        try{
+            using(conf).parse("{\"foo\" : \"bar\"}")
+                    .add("$.foo2.bar2", "bar_2_value");
+            fail("Should throw PathNotFoundException");
+        } catch (PathNotFoundException pnf){}
+
+        conf = Configuration.defaultConfiguration().addOptions(CREATE_ON_WRITE);
+
+        String value = using(conf).parse("{\"foo\" : \"bar\"}")
+                .add("$.foo2.bar2", "bar_2_value")
+                .read("$.foo2.bar2[0]");
+        assertThat(value).isEqualTo("bar_2_value");
+
+    }
+
 }
